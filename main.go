@@ -23,11 +23,12 @@ func playPlayerHand(hand structs.Hand) structs.Hand {
 	for {
 		var choice string
 		card := selectCard()
-		time.Sleep(2 * time.Second)
 		fmt.Println("You got:", card.Name, "of", card.Suit)
+		time.Sleep(2 * time.Second)
 		hand.Cards = append(hand.Cards, card)
 		fmt.Println("Your hand:", hand.Print(true))
-		hand.SumPoints("player")
+		time.Sleep(2 * time.Second)
+		hand.SumPoints()
 		if hand.Points >= 21 {
 			break
 		}
@@ -52,11 +53,12 @@ func playPlayerHand(hand structs.Hand) structs.Hand {
 func playDealerHand(hand structs.Hand) structs.Hand {
 	for {
 		card := selectCard()
-		time.Sleep(2 * time.Second)
 		fmt.Println("\nDealer got:", card.Name, "of", card.Suit)
+		time.Sleep(2 * time.Second)
 		hand.Cards = append(hand.Cards, card)
-		fmt.Println("Dealer's visible hand:", hand.Print(false))
-		hand.SumPoints("dealer")
+		fmt.Println("Dealer's visible hand:", hand.Print(true))
+		time.Sleep(2 * time.Second)
+		hand.SumPoints()
 		if hand.Points >= 17 {
 			break
 		}
@@ -75,9 +77,16 @@ func checkWinner(playerHand, dealerHand structs.Hand) structs.Hand {
 	} else if (dealerDiff == 0 && playerDiff != 0) || (dealerDiff > 0 && playerDiff < 0) {
 		fmt.Println("\nYOU LOSE!")
 		return dealerHand
-	} else {
-		return checkCards(playerHand, dealerHand)
+	} else if playerDiff > 0 && dealerDiff > 0 {
+		if playerDiff < dealerDiff {
+			fmt.Println("\nYOU WIN!")
+			return playerHand
+		} else if dealerDiff < playerDiff {
+			fmt.Println("\nYOU LOSE!")
+			return dealerHand
+		}
 	}
+	return checkCards(playerHand, dealerHand)
 }
 
 func checkCards(playerHand, dealerHand structs.Hand) structs.Hand {
@@ -98,30 +107,45 @@ func checkCards(playerHand, dealerHand structs.Hand) structs.Hand {
 
 func main() {
 	fmt.Println("\nBLACKJACK GAME")
-	deck := make([]structs.Card, len(constants.Deck))
-	copy(deck, constants.Deck)
+	time.Sleep(2 * time.Second)
+	// For when different games are played in single session
+	// deck := make([]structs.Card, len(constants.Deck))
+	// copy(deck, constants.Deck)
+
+	// Dealer's starting cards
 	dealerCard1 := selectCard()
+	fmt.Println("\nDealer got a hole card")
+	time.Sleep(2 * time.Second)
 	dealerCard2 := selectCard()
 	dealerHand := structs.Hand{
+		Role:   structs.Dealer,
 		Cards:  []structs.Card{dealerCard1, dealerCard2},
 		Points: dealerCard1.Value + dealerCard2.Value,
 	}
+	fmt.Println("Visible card of dealer is:", dealerCard2.Name, "of", dealerCard2.Suit)
 	time.Sleep(2 * time.Second)
-	fmt.Println("\nVisible card of dealer is:", dealerCard2.Name, "of", dealerCard2.Suit)
-	// fmt.Println(dealerHand)
+
+	// Player's starting cards and turn
 	playerCard := selectCard()
-	time.Sleep(2 * time.Second)
 	fmt.Println("\nYou got:", playerCard.Name, "of", playerCard.Suit)
+	time.Sleep(2 * time.Second)
 	playerHand := structs.Hand{
+		Role:   structs.Player,
 		Cards:  []structs.Card{playerCard},
 		Points: playerCard.Value,
 	}
 	playerHand = playPlayerHand(playerHand)
-	// Case player points > 21
-	if playerHand.Points <= 21 {
+
+	// Dealer's turn
+	// Case player points > 21 it is end game
+	// Case dealer points > 17 it must stand
+	if playerHand.Points <= 21 && dealerHand.Points < 17 {
 		dealerHand = playDealerHand(dealerHand)
 	}
+
+	// Check for winner
 	winnerHand := checkWinner(playerHand, dealerHand)
+	time.Sleep(1 * time.Second)
 	if winnerHand.Points == 0 {
 		fmt.Println("No one wins")
 	} else {
@@ -131,5 +155,5 @@ func main() {
 			fmt.Println("BLACKJACK!")
 		}
 	}
-	fmt.Println("")
+	fmt.Println()
 }

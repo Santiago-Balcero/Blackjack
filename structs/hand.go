@@ -6,9 +6,17 @@ import (
 )
 
 type Hand struct {
+	Role   Role
 	Cards  []Card
 	Points int
 }
+
+type Role string
+
+const (
+	Player Role = "player"
+	Dealer Role = "dealer"
+)
 
 func (h *Hand) Print(allHand bool) string {
 	var handList []string
@@ -25,9 +33,9 @@ func (h *Hand) Print(allHand bool) string {
 	return strings.Join(handList, " - ")
 }
 
-func (h *Hand) SumPoints(role string) {
+func (h *Hand) SumPoints() {
 	var totalPoints int
-	if role == "player" {
+	if h.Role == Player {
 		for _, card := range h.Cards {
 			var aceChoice string
 			if card.Name == "Ace" {
@@ -47,7 +55,7 @@ func (h *Hand) SumPoints(role string) {
 			}
 			totalPoints += card.Value
 		}
-	} else if role == "dealer" {
+	} else if h.Role == Dealer {
 		for _, card := range h.Cards {
 			if card.Name == "Ace" {
 				if totalPoints+card.Value > 21 {
